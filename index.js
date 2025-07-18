@@ -7,23 +7,29 @@ const { chromium } = require('playwright');
   });
 
   const page = await browser.newPage();
-
   console.log("▶️ Acessando arbitragem.bet...");
-  await page.goto('https://arbitragem.bet/', { waitUntil: 'networkidle' });
+  await page.goto('https://arbitragem.bet', { timeout: 60000 });
 
   // Login
   await page.fill('input[name="email"]', 'contato.frontdesk@gmail.com');
   await page.fill('input[name="password"]', 'Acesso@01');
+
   await Promise.all([
     page.waitForNavigation({ waitUntil: 'networkidle' }),
     page.click('button[type="submit"]')
   ]);
 
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(4000);
 
-  console.log("✅ Login feito. Aguardando oportunidades...");
+  // 🔍 Debug: imprime parte do HTML
+  const html = await page.content();
+  console.log("📄 HTML (pós-login):\n", html.slice(0, 1000));
+
+  // Espera oportunidades aparecerem
+  console.log("⏳ Aguardando seletor...");
   await page.waitForSelector('.layout-mobile-desktop-and-tablet', { timeout: 20000 });
 
+  // Extração
   const oportunidades = await page.$$eval('.layout-mobile-desktop-and-tablet', (blocos) => {
     return Array.from(blocos).map((b) => {
       const getText = (sel) => b.querySelector(sel)?.innerText.trim() || '';
@@ -57,8 +63,7 @@ const { chromium } = require('playwright');
     });
   });
 
-  console.log(`✅ ${oportunidades.length} oportunidades salvas:`);
+  console.log(`✅ ${oportunidades.length} oportunidades encontradas:`);
   console.log(oportunidades);
-
   await browser.close();
 })();
