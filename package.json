@@ -1,13 +1,10 @@
 {
-  "name": "arbitragem-playwright",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "postinstall": "npx playwright install --with-deps"
-  },
+  "type": "commonjs",
   "dependencies": {
-    "playwright": "^1.44.1",
-    "node-fetch": "^2.6.7"
+    "playwright": "^1.43.1",
+    "node-fetch": "^2.6.11"
+  },
+  "scripts": {
+    "start": "node index.js"
   }
 }
