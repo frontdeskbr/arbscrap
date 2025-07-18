@@ -14,10 +14,8 @@ const { chromium } = require('playwright');
   await page.fill('input[name="email"]', 'contato.frontdesk@gmail.com');
   await page.fill('input[name="password"]', 'Acesso@01');
 
-  await Promise.all([
-    page.waitForNavigation({ waitUntil: 'networkidle' }),
-    page.click('button[type="submit"]')
-  ]);
+await page.click('button[type="submit"]');
+await page.waitForTimeout(5000); // aguarda manualmente
 
   await page.waitForTimeout(4000);
 
