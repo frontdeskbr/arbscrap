@@ -1,31 +1,24 @@
 const { chromium } = require('playwright');
 const fetch = require('node-fetch');
-const fs = require('fs');
-
-// Supabase configs
-const SUPABASE_URL = 'https://ssrdcsrmifoexueivfls.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjgxNjM1OCwiZXhwIjoyMDY4MzkyMzU4fQ.8lK6UKsNPh3Ikll53YBbdpmGv0aWQQKuMYk9zsIiK54';
 
 (async () => {
-    console.log('▶️ Acessando arbitragem.bet...');
-
+    console.log("▶️ Acessando arbitragem.bet...");
     const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext();
+    const page = await browser.newPage();
 
-    // Carrega cookies
-    const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
-    await context.addCookies(cookies);
+    await page.goto('https://arbitragem.bet/', { waitUntil: 'networkidle' });
 
-    const page = await context.newPage();
-    await page.goto('https://arbitragem.bet/', { waitUntil: 'domcontentloaded' });
+    await page.fill('input[name="email"]', 'contato.frontdesk@gmail.com');
+    await page.fill('input[name="password"]', 'Acesso@01');
+    await page.click('button[type="submit"]');
+    await page.waitForTimeout(4000);
 
-    // Espera o seletor com timeout seguro
+    console.log("✅ Login feito. Aguardando oportunidades...");
     await page.waitForSelector('.layout-mobile-desktop-and-tablet', { timeout: 20000 });
 
-    // Extrai os dados
     const oportunidades = await page.$$eval('.layout-mobile-desktop-and-tablet', (blocos) => {
         return blocos.map((b) => {
-            const get = (sel) => b.querySelector(sel)?.innerText.trim() || '';
+            const getText = (sel) => b.querySelector(sel)?.innerText.trim() || '';
             const casas = b.querySelectorAll('.area-bet-home .link-primary');
             const esportes = b.querySelectorAll('.area-bet-home .legenda-2.text-black-50');
             const eventos = b.querySelectorAll('.area-event .text-decoration-underline');
@@ -33,15 +26,15 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
             const mercados = b.querySelectorAll('.area-data-market abbr.title');
             const odds = b.querySelectorAll('.area-chance a');
 
-            return {
-                lucro: get('.area-profit-desktop .text-success'),
-                tempo: get('span.ps-1.m-0.legenda.text-black-50.default-small-font-size'),
-                casa1: casas[0]?.innerText.trim() || '',
+            const item = {
+                lucro: getText('.area-profit-desktop .text-success'),
+                tempo: getText('span.ps-1.m-0.legenda.text-black-50.default-small-font-size'),
                 esporte1: esportes[0]?.innerText.trim() || '',
+                casa1: casas[0]?.innerText.trim() || '',
                 casa2: casas[1]?.innerText.trim() || '',
                 esporte2: esportes[1]?.innerText.trim() || '',
-                data: get('.area-date-time span:first-child'),
-                hora: get('.area-date-time span:nth-child(2)'),
+                data: getText('.area-date-time span:first-child'),
+                hora: getText('.area-date-time span:nth-child(2)'),
                 evento1: eventos[0]?.innerText.trim() || '',
                 descEv1: descricoes[0]?.innerText.trim() || '',
                 evento2: eventos[1]?.innerText.trim() || '',
@@ -53,30 +46,30 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
                 linkCasa1: odds[0]?.href || '',
                 linkCasa2: odds[1]?.href || '',
             };
+
+            item.id = `${item.evento1}-${item.casa1}-${item.casa2}-${item.mercado1}-${item.odd1}`
+                .replace(/\s+/g, '-')
+                .toLowerCase();
+
+            return item;
         });
     });
 
-    for (const item of oportunidades) {
-        // Cria um ID único para evitar duplicação
-        item.id = `${item.evento1}-${item.casa1}-${item.casa2}-${item.mercado1}-${item.odd1}`.replace(/\s+/g, '-').toLowerCase();
+    console.log(`📦 Enviando ${oportunidades.length} oportunidades para o Supabase...`);
 
-        try {
-            await fetch(`${SUPABASE_URL}/rest/v1/arbs`, {
-                method: 'POST',
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    'Content-Type': 'application/json',
-                    Prefer: 'resolution=merge-duplicates'
-                },
-                body: JSON.stringify(item)
-            });
-            console.log('✅ Enviado:', item.id);
-        } catch (e) {
-            console.error('❌ Erro ao enviar:', item.id, e.message);
-        }
+    for (const item of oportunidades) {
+        await fetch('https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/oportunidades', {
+            method: 'POST',
+            headers: {
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjgxNjM1OCwiZXhwIjoyMDY4MzkyMzU4fQ.8lK6UKsNPh3Ikll53YBbdpmGv0aWQQKuMYk9zsIiK54',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjgxNjM1OCwiZXhwIjoyMDY4MzkyMzU4fQ.8lK6UKsNPh3Ikll53YBbdpmGv0aWQQKuMYk9zsIiK54',
+                'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify(item)
+        });
     }
 
+    console.log("✅ Envio finalizado.");
     await browser.close();
-    console.log(`✅ ${oportunidades.length} oportunidades processadas`);
 })();
