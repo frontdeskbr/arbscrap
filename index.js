@@ -59,5 +59,5 @@ app.get('/', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Rodando em http://localhost:${PORT}`);
+  console.log(`✅ Servidor online na porta ${PORT}`);
 });
