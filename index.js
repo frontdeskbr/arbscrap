@@ -58,7 +58,7 @@ const fetch = require('node-fetch');
     console.log(`📦 Enviando ${oportunidades.length} oportunidades para o Supabase...`);
 
     for (const item of oportunidades) {
-        await fetch('https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/oportunidades', {
+        await fetch('https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/arbs', {
             method: 'POST',
             headers: {
                 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjgxNjM1OCwiZXhwIjoyMDY4MzkyMzU4fQ.8lK6UKsNPh3Ikll53YBbdpmGv0aWQQKuMYk9zsIiK54',
