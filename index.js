@@ -1,21 +1,20 @@
 const { chromium } = require('playwright');
 const fetch = require('node-fetch');
 
-const SUPABASE_URL = 'https://ssrdcsrmifoexueivfls.supabase.co';
-const SUPABASE_API = `${SUPABASE_URL}/rest/v1/arbs`;
+const SUPABASE_API = 'https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/arbs';
 const SUPABASE_HEADERS = {
-  apikey: 'SUA_API_KEY_AQUI',
-  Authorization: 'Bearer SUA_API_KEY_AQUI',
+  apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
+  Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
   'Content-Type': 'application/json',
+  Prefer: 'resolution=merge-duplicates'
 };
 
 (async () => {
-  console.log("▶️ Acessando arbitragem.bet...");
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
+  console.log("▶️ Acessando arbitragem.bet...");
   await page.goto('https://arbitragem.bet/', { waitUntil: 'networkidle' });
-
   await page.fill('input[name="email"]', 'contato.frontdesk@gmail.com');
   await page.fill('input[name="password"]', 'Acesso@01');
   await page.click('button[type="submit"]');
@@ -63,24 +62,21 @@ const SUPABASE_HEADERS = {
     });
   });
 
-  console.log("🧹 Limpando dados antigos do Supabase...");
-  await fetch(SUPABASE_API, {
+  console.log("🧹 Limpando Supabase antigo...");
+  await fetch(`${SUPABASE_API}?id=gt.0`, {
     method: 'DELETE',
     headers: {
       ...SUPABASE_HEADERS,
-      Prefer: 'return=minimal',
+      Prefer: 'return=minimal'
     }
   });
 
-  console.log(`📦 Enviando ${oportunidades.length} novas oportunidades...`);
+  console.log(`📦 Enviando ${oportunidades.length} oportunidades para o Supabase...`);
   for (const item of oportunidades) {
     await fetch(SUPABASE_API, {
       method: 'POST',
-      headers: {
-        ...SUPABASE_HEADERS,
-        Prefer: 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify(item),
+      headers: SUPABASE_HEADERS,
+      body: JSON.stringify(item)
     });
   }
 
