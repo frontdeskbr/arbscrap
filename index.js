@@ -1,28 +1,29 @@
 const { chromium } = require('playwright');
 const fetch = require('node-fetch');
 
-const SUPABASE_API = 'https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/arbs';
-const SUPABASE_HEADERS = {
-  apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
-  Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
-  'Content-Type': 'application/json',
-  Prefer: 'resolution=merge-duplicates'
-};
-
 (async () => {
+  console.log("▶️ Iniciando scraping no arbitragem.bet...");
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
-  console.log("▶️ Acessando arbitragem.bet...");
   await page.goto('https://arbitragem.bet/', { waitUntil: 'networkidle' });
   await page.fill('input[name="email"]', 'contato.frontdesk@gmail.com');
   await page.fill('input[name="password"]', 'Acesso@01');
   await page.click('button[type="submit"]');
   await page.waitForTimeout(4000);
-
-  console.log("✅ Login feito. Aguardando oportunidades...");
   await page.waitForSelector('.layout-mobile-desktop-and-tablet', { timeout: 20000 });
 
+  console.log("🧹 Limpando registros anteriores...");
+  await fetch('https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/arbs', {
+    method: 'DELETE',
+    headers: {
+      apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
+      Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
+      'Content-Type': 'application/json'
+    }
+  });
+
+  console.log("✅ Coletando oportunidades...");
   const oportunidades = await page.$$eval('.layout-mobile-desktop-and-tablet', (blocos) => {
     return blocos.map((b) => {
       const getText = (sel) => b.querySelector(sel)?.innerText.trim() || '';
@@ -62,24 +63,21 @@ const SUPABASE_HEADERS = {
     });
   });
 
-  console.log("🧹 Limpando Supabase antigo...");
-  await fetch(`${SUPABASE_API}?id=gt.0`, {
-    method: 'DELETE',
-    headers: {
-      ...SUPABASE_HEADERS,
-      Prefer: 'return=minimal'
-    }
-  });
+  console.log(`📤 Enviando ${oportunidades.length} oportunidades...`);
 
-  console.log(`📦 Enviando ${oportunidades.length} oportunidades para o Supabase...`);
   for (const item of oportunidades) {
-    await fetch(SUPABASE_API, {
+    await fetch('https://ssrdcsrmifoexueivfls.supabase.co/rest/v1/arbs', {
       method: 'POST',
-      headers: SUPABASE_HEADERS,
+      headers: {
+        apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
+        Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzcmRjc3JtaWZvZXh1ZWl2ZmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTYzNTgsImV4cCI6MjA2ODM5MjM1OH0.m5Z0FKHB2Pow4zby3dvM-dM4Io9P9tTN4LQVfkCOCsw',
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates'
+      },
       body: JSON.stringify(item)
     });
   }
 
-  console.log("✅ Envio finalizado.");
+  console.log("✅ Finalizado.");
   await browser.close();
 })();
